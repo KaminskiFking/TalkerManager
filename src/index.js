@@ -25,3 +25,13 @@ app.get('/talker', async (_req, res) => {
   }
   return res.status(200).json(talkers);
 });
+
+app.get('/talker/:id', async (req, res) => {
+  const talkers = await getAllTalkers();
+  const { id } = req.params;
+  const updateTalkers = talkers.find((team) => team.id === Number(id));
+  if (!updateTalkers) {
+    return res.status(404).json({ message: 'Pessoa palestrante não encontrada' });
+  }
+  return res.status(200).json(updateTalkers);
+});
