@@ -1,7 +1,7 @@
 const express = require('express');
 
 const bodyParser = require('body-parser');
-const { getAllTalkers } = require('./fsUtils');
+const { getAllTalkers, tokenKey } = require('./fsUtils');
 
 const app = express();
 app.use(bodyParser.json());
@@ -34,4 +34,13 @@ app.get('/talker/:id', async (req, res) => {
     return res.status(404).json({ message: 'Pessoa palestrante não encontrada' });
   }
   return res.status(200).json(updateTalkers);
+});
+
+app.post('/login', (req, res) => {
+  const { email, password } = req.body;
+
+  if (email && password) {
+    const tokenCode = tokenKey(16);
+    return res.status(200).json({ token: tokenCode });
+  }
 });
