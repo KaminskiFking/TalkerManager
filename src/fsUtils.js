@@ -3,6 +3,11 @@ const path = require('path');
 
 const talkerPath = path.resolve(__dirname, 'talker.json');
 
+function validateEmail(email) {
+  const re = /\S+@\S+\.\S+/;
+  return re.test(email);
+}
+
 function tokenKey(length) {
   let result = '';
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -22,4 +27,5 @@ const getAllTalkers = async () => {
 module.exports = {
   getAllTalkers,
   tokenKey,
+  validateEmail,
 };

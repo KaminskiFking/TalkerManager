@@ -1,7 +1,7 @@
 const express = require('express');
 
 const bodyParser = require('body-parser');
-const { getAllTalkers, tokenKey } = require('./fsUtils');
+const { getAllTalkers, tokenKey, validateEmail } = require('./fsUtils');
 
 const app = express();
 app.use(bodyParser.json());
@@ -38,9 +38,17 @@ app.get('/talker/:id', async (req, res) => {
 
 app.post('/login', (req, res) => {
   const { email, password } = req.body;
-
-  if (email && password) {
-    const tokenCode = tokenKey(16);
-    return res.status(200).json({ token: tokenCode });
+  const emailValidate = validateEmail(email);
+  if (!email) {
+    res.status(400).json({ message: 'O campo "email" é obrigatório' });
+  } else if (!password) {
+    return res.status(400).json({ message: 'O campo "password" é obrigatório' });
+  } else if (password.length < 6) {
+    return res.status(400).json({ message: 'O "password" deve ter pelo menos 6 caracteres' });
+  } else if (!emailValidate) {
+    return res.status(400)
+      .json({ message: 'O "email" deve ter o formato "email@email.com"' });
   }
+  const tokenCode = tokenKey(16);
+  return res.status(200).json({ token: tokenCode });
 });
