@@ -1,13 +1,32 @@
 const express = require('express');
+const fs = require('fs').promises;
+const path = require('path');
 
 const bodyParser = require('body-parser');
-const { getAllTalkers, tokenKey, validateEmail } = require('./fsUtils');
+const { getAllTalkers, tokenKey } = require('./fsUtils');
+const { validateLogin } = require('./midleewares/validateLogin');
+const { validateToken } = require('./midleewares/validateToken');
+const { validateTalk } = require('./midleewares/validateTalk');
+const { validateTalkDate } = require('./midleewares/validateTalkDate');
+const { validateName } = require('./midleewares/validateName');
+const { validateAge } = require('./midleewares/validateAge');
 
 const app = express();
 app.use(bodyParser.json());
 
 const HTTP_OK_STATUS = 200;
 const PORT = '3000';
+
+const talkerPath = path.resolve(__dirname, './talker.json');
+
+// async function readFile() {
+//   try {
+//     const data = await getAllTalkers();
+//     return JSON.parse(data);
+//   } catch (error) {
+//     console.error(`file not found ${error}`);
+//   }
+// }
 
 // não remova esse endpoint, e para o avaliador funcionarr
 app.get('/', (_request, response) => {
@@ -36,19 +55,36 @@ app.get('/talker/:id', async (req, res) => {
   return res.status(200).json(updateTalkers);
 });
 
-app.post('/login', (req, res) => {
-  const { email, password } = req.body;
-  const emailValidate = validateEmail(email);
-  if (!email) {
-    res.status(400).json({ message: 'O campo "email" é obrigatório' });
-  } else if (!password) {
-    return res.status(400).json({ message: 'O campo "password" é obrigatório' });
-  } else if (password.length < 6) {
-    return res.status(400).json({ message: 'O "password" deve ter pelo menos 6 caracteres' });
-  } else if (!emailValidate) {
-    return res.status(400)
-      .json({ message: 'O "email" deve ter o formato "email@email.com"' });
-  }
+app.post('/login', validateLogin, (_req, res) => {
   const tokenCode = tokenKey(16);
   return res.status(200).json({ token: tokenCode });
+});
+
+app.post('/talker',
+validateToken, 
+validateName, 
+validateAge, 
+validateTalk, validateTalkDate, async (req, res) => {
+    const talkers = await getAllTalkers();
+    const newTalker = {
+      id: talkers[talkers.length - 1].id + 1,
+      ...req.body,
+    };
+    const allTalkers = JSON.stringify([...talkers, newTalker]);
+    await fs.writeFile(talkerPath, allTalkers);
+    res.status(201).json(newTalker);
+});
+
+app.put('/talker/:id',
+validateToken, 
+validateName, 
+validateAge, 
+validateTalk, validateTalkDate, async (req, res) => {
+    const { id } = req.params;
+    const talkers = await getAllTalkers();
+    const newTalker = { id: Number(id), ...req.body };
+    const filterTalker = talkers.filter((e) => e.id !== Number(id));
+    const allTalkers = JSON.stringify([...filterTalker, newTalker]);
+    await fs.writeFile(talkerPath, allTalkers);
+    res.status(200).json(newTalker);
 });
