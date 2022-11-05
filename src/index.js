@@ -88,3 +88,13 @@ validateTalk, validateTalkDate, async (req, res) => {
     await fs.writeFile(talkerPath, allTalkers);
     res.status(200).json(newTalker);
 });
+
+app.delete('/talker/:id',
+validateToken, async (req, res) => {
+    const { id } = req.params;
+    const talkers = await getAllTalkers();
+    const filterTalker = talkers.filter((e) => e.id !== Number(id));
+    const allTalkers = JSON.stringify([...filterTalker]);
+    await fs.writeFile(talkerPath, allTalkers);
+    res.status(204).json();
+});
